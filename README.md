@@ -22,6 +22,7 @@ Frameworks used : **PyTorch**, **Tensorflow**, **Keras**
 ## Neural Network Architectures
 
 - [ ] Convolutional Neural Network (CNN)
+- [ ] Residual Networks (GCNs)
 - [ ] Recurrent Neural Network (RNN)
 - [ ] Long Short-Term Memory (LSTM)
 - [ ] Generative Adversarial Network (GAN)
@@ -40,6 +41,7 @@ Frameworks used : **PyTorch**, **Tensorflow**, **Keras**
 To add :
 
 * More RL Algorithms
+* MARL
 
 Further Plans :
 
