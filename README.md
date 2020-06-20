@@ -33,6 +33,7 @@ Frameworks used : **PyTorch**, **Tensorflow**, **Keras**
 
 ## Reinforcement Learning Algorithms
 
+- [ ] Vanilla Reinforcement Learning
 - [ ] Q-Learning
 - [ ] State-Action-Reward-State-Action (SARSA)
 - [ ] Deep Q Network (DQN)
