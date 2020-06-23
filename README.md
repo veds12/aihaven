@@ -43,7 +43,7 @@ Frameworks used : **PyTorch**, **Tensorflow**, **Keras**
 
 To add :
 
-- [ * ] More RL Algorithms
+- [x] More RL Algorithms
 - [ ] MARL Algorithms
 - [ ] Genetic Algorithms
 
