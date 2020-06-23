@@ -38,14 +38,13 @@ Frameworks used : **PyTorch**, **Tensorflow**, **Keras**
 - [ ] State-Action-Reward-State-Action (SARSA)
 - [ ] Deep Q Network (DQN)
 - [ ] Deep Deterministic Policy Gradient (DDPG)
+- [ ] Monte Carlo Tree Search (MCTS)
+- [ ] Temporal Difference Learning (TD Learning)
 
 To add :
 
-* More RL Algorithms
-* MARL
-
-Further Plans :
-
-* Add implementations of Genetic Algorithms
+- [*] More RL Algorithms
+- [ ] MARL Algorithms
+- [ ] Genetic Algorithms
 
 
