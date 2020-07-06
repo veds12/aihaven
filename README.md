@@ -26,6 +26,7 @@ Frameworks used : **PyTorch**, **Tensorflow**, **Keras**
 - [ ] Recurrent Neural Network (RNN)
 - [ ] Long Short-Term Memory (LSTM)
 - [ ] Generative Adversarial Network (GAN)
+- [ ] K-Means Clustering
 - [ ] Restricted Bolzmann Machine (RBM)
 - [ ] Deep Belief Network (DBN)
 - [ ] Graph Convolutional Networks (GCN)
@@ -43,7 +44,7 @@ Frameworks used : **PyTorch**, **Tensorflow**, **Keras**
 
 To add :
 
-- [*] More RL Algorithms
+- [x] More RL Algorithms
 - [ ] MARL Algorithms
 - [ ] Genetic Algorithms
 
