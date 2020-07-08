@@ -24,8 +24,8 @@ Frameworck used : PyTorch
 ## Current Tasks 
 
 - [x] Write a script defining a gcn layer
-- [ ] Define the model
-- [ ] train.py
+- [x] Define the model
+- [ ] Integrate train.py in model.py
 
 ## References 
 
