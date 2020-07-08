@@ -1,6 +1,6 @@
 # Graph Convolutional Networks
 
-Frameworck used : PyTorch
+Framework used : PyTorch
 
 ## layers.py
 
