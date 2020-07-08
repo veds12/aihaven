@@ -6,15 +6,14 @@ Frameworck used : PyTorch
 
 ```
  from layers import gcn_layer
-
  mygcn = gcn_layer(ipsize, opsize)
  out = mygcn.compute(A, features)
 ```
 
 * ipsize - Number of features per node in the input
 * opsize - Number of features per node in the output
-* A - A numpy adjacency matrix representing the graph (without self loops)
-* features - Feature (numpy) matrix of the graph nodes
+* A - The adjacency matrix (torch tensor) representing the graph (without self loops)
+* features - Feature matrix (torch tensor) of the graph nodes
 
 ### Attributes
 

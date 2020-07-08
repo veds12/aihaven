@@ -20,14 +20,14 @@ class gcn_layer(nn.Module):
     
 
   def compute(self, admat, features):
+
     ''' Forward Propagation through the layer according to the spectral rule '''
-    self.a = torch.from_numpy(admat)         
-    self.features = torch.from_numpy(features)
-    self.D = torch.diag(self.a.sum(1), diagonal = 0)
-    self.out = torch.empty (self.a.size[0], op_size)
-    self.a_hat = self.a + torch.eye(self.a.size[0])    # Counting the contribution of each node to itself
+             
+    self.D = torch.diag(admat.sum(1), diagonal = 0)
+    self.out = torch.empty (admat.size[0], op_size)
+    self.a_hat = admat + torch.eye(admat.size[0])    # Counting the contribution of each node to itself
     self.D_inv = self.D**(-0.5)
     self.a_hat = self.D_inv * self.a_hat * self.D_inv  # Normalising according to the spectral rule
-    self.out = torch.dot(torch.dot(self.a_hat, self.features), self.weights)   # Forward propagate trhough the layer
-    return self.out.numpy()
+    self.out = torch.dot(torch.dot(self.a_hat, features), self.weights)   # Forward propagate trhough the layer
+    return self.out
 
