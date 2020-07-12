@@ -29,7 +29,7 @@ Frameworks used : **PyTorch**, **Tensorflow**, **Keras**
 - [ ] K-Means Clustering
 - [ ] Restricted Bolzmann Machine (RBM)
 - [ ] Deep Belief Network (DBN)
-- [ ] Graph Convolutional Networks (GCN)
+- [x] Graph Convolutional Networks (GCN)
 - [ ] Multilayer Perceptron Neural Network (MLPNN)
 
 ## Reinforcement Learning Algorithms
