@@ -29,7 +29,7 @@ Frameworks used : **PyTorch**, **Tensorflow**, **Keras**
 - [ ] K-Means Clustering
 - [ ] Restricted Bolzmann Machine (RBM)
 - [ ] Deep Belief Network (DBN)
-- [ ] Graph Convolutional Networks (GCN)
+- [x] Graph Convolutional Networks (GCN)
 - [ ] Multilayer Perceptron Neural Network (MLPNN)
 
 ## Reinforcement Learning Algorithms
@@ -42,10 +42,16 @@ Frameworks used : **PyTorch**, **Tensorflow**, **Keras**
 - [ ] Monte Carlo Tree Search (MCTS)
 - [ ] Temporal Difference Learning (TD Learning)
 
+## Multi Agent Reinforcement Learning Algorithms
+
+- [ ] Multi Agent Deep Deterministic Policy Gradient (MADDPG)
+- [ ] Multi Agent Advantage Actor Critic (MAA2C)
+- [ ] Team Q-Learning
+
 To add :
 
-- [x] More RL Algorithms
-- [ ] MARL Algorithms
-- [ ] Genetic Algorithms
+- [x] Include more RL Algorithms
+- [x] Include MARL Algorithms
+- [ ] Include genetic Algorithms
 
 
