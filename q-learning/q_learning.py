@@ -36,16 +36,17 @@ class agent:
 		a = self.epsilon_greedy()
 		next_state, reward, done, _ = self.env.step(a)
 		#print("Next state and reward respectively are :", next_state, reward)
-		self.update(a, next_state, reward)
+		self.update(a, next_state, reward, done)
 		self.init_state = next_state
 		return done
 
-	def update(self, a, next_state, reward):
+	def update(self, a, next_state, reward, done):
 		#print("Updating the q-value of state:", self.init_state)
-		self.q_table[self.init_state, a] = self.q_table[self.init_state, a] + self.step_size * (reward + self.gamma * np.max(self.q_table[int(next_state)]) - self.q_table[self.init_state, a])
+		self.q_table[self.init_state, a] = self.q_table[self.init_state, a] + self.step_size * (reward + self.gamma * np.max(self.q_table[int(next_state)]) * (1 - done) - self.q_table[self.init_state, a])
 		#print("New value of the initial state and action :", a, self.q_table[self.init_state, a])
 
 	def train(self):
+		''' Train the agent using q-learning'''
 		print("Initial q-table:\n")
 		print(self.q_table,"\n")
 		#print("Entered train function. Starting training over 100 episodes")
@@ -60,6 +61,17 @@ class agent:
 		print("Final q-table:\n")
 		print(self.q_table)
 		self.env.close()
+
+	def display_value(self):
+		'''
+		Displays the q- values for each state
+		'''
+		val = np.zeros((16, 1))
+		for i in range(16):
+			val[i] = np.max(self.q_table[i])
+		val = np.reshape(val, (4, 4))
+		print(val)
+
 
 
 

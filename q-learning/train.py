@@ -10,4 +10,5 @@ env = gym.make('FrozenLake-v0')
 
 myagent = agent(STEP_SIZE, GAMMA, EPSILON, env)
 myagent.train()
+myagent.display_value()
         
