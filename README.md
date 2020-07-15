@@ -34,7 +34,7 @@ Frameworks used : **PyTorch**, **Tensorflow**, **Keras**
 
 ## Reinforcement Learning Algorithms
 
-- [ ] Vanilla Reinforcement Learning
+- [ ] Vanilla Policy Gradient (VPG)
 - [x] Q-Learning
 - [ ] State-Action-Reward-State-Action (SARSA)
 - [ ] Deep Q Network (DQN)
