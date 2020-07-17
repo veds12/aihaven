@@ -35,7 +35,7 @@ class agent:
                 nn.ReLU(),
                 nn.Linear(hidden_layers_size[0], hidden_layers_size[1]),
                 nn.ReLU(),
-                nn.Linear(hidden_layers_size[1], self.env.action_space.shape[0]),
+                nn.Linear(hidden_layers_size[1], self.env.action_space.n),
             )
             .to(device)
             .to(dtype)
