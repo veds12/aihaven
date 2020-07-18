@@ -5,7 +5,7 @@ Framework used : PyTorch
 ## layers.py
 
 ```
- from layers import gcn_layer
+ from aihaven.gcn.layers import gcn_layer
  mygcn = gcn_layer(ipsize, opsize)
  out = mygcn.compute(A, features)
 ```
@@ -25,6 +25,7 @@ Framework used : PyTorch
 
 - [x] Write a script defining a gcn layer
 - [x] Define the model
+- [ ] Add docs for model.py
 - [ ] Integrate train.py in model.py
 
 ## References 

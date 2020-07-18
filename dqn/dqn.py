@@ -19,7 +19,12 @@ dtype = torch.double
 
 class agent:
     def __init__(
-        self, env, GAMMA, EPSILON=0, hidden_layers_size=[24, 24], buffer_size=10000
+        self,
+        env,
+        GAMMA,
+        EPSILON=0,
+        hidden_layers_size=[24, 24],
+        buffer_size=10000,
     ):
         self.env = env
         self.dqn = self.model(hidden_layers_size)
@@ -31,7 +36,10 @@ class agent:
     def model(self, hidden_layers_size):
         return (
             nn.Sequential(
-                nn.Linear(self.env.observation_space.shape[0], hidden_layers_size[0]),
+                nn.Linear(
+                    self.env.observation_space.shape[0],
+                    hidden_layers_size[0],
+                ),
                 nn.ReLU(),
                 nn.Linear(hidden_layers_size[0], hidden_layers_size[1]),
                 nn.ReLU(),
@@ -49,17 +57,25 @@ class agent:
 
     def store_transitions(self, state, action, reward, next_state, done):
         if len(self.memory) < self.buffer_size:
-            self.memory.append(self.Transition(state, action, reward, next_state, done))
+            self.memory.append(
+                self.Transition(state, action, reward, next_state, done)
+            )
         else:
             self.memory.popleft()
-            self.memory.append(Transition(state, action, reward, next_state, done))
+            self.memory.append(
+                Transition(state, action, reward, next_state, done)
+            )
 
     def sample(self, batch_size):
         return Transition(
             *[
                 torch.cat[i]
                 for i in [
-                    *zip(*random.sample(self.memory, min(len(self.memory), batch_size)))
+                    *zip(
+                        *random.sample(
+                            self.memory, min(len(self.memory), batch_size)
+                        )
+                    )
                 ]
             ]
         )
@@ -71,7 +87,9 @@ class agent:
                 self.env.render()
                 action = self.select_action(state)
                 next_state, reward, done, _ = self.env.step(action)
-                self.store_transitions(state, action, reward, next_state, done)
+                self.store_transitions(
+                    state, action, reward, next_state, done
+                )
                 sample = self.sample(32)
                 if sample.done:
                     target = sample.reward
@@ -80,7 +98,9 @@ class agent:
                         self.dqn(sample.next_state)
                     )
                 curr_pred = self.dqn(sample.state)[sample.action]
-                optimizer = optim.nn.Adam(self.dqn.parameters(), lr=learning_rate)
+                optimizer = optim.nn.Adam(
+                    self.dqn.parameters(), lr=learning_rate
+                )
                 loss = nn.MSELoss()(target, curr_pred)
                 print(loss.item())
                 loss.backward()
@@ -91,7 +111,7 @@ class agent:
 
     def test(self, episodes):
         self.env.render()
-        for e in range(EPISODES):
+        for e in range(episodes):
             state = self.env.reset()
             done = False
             i = 0
@@ -100,10 +120,14 @@ class agent:
                 state, reward, done, _ = self.env.step(action)
                 i += 1
                 if done:
-                    print("Episode no. : {}/{} , Score : {}".format(e, EPISODES, i))
+                    print(
+                        "Episode no. : {}/{} , Score : {}".format(
+                            e, episodes, i
+                        )
+                    )
 
 
-if __name__ == "__main__":
+"""if __name__ == "__main__":
     env = gym.make("CartPole-v1")
     GAMMA = 0.9
     EPSILON = 0.2
@@ -116,4 +140,4 @@ if __name__ == "__main__":
 
     myagent = agent(env, GAMMA, EPSILON, hidden_layers_size, buffer_size)
     myagent.play(EPISODES, lr)
-    myagent.test(episodes)
+    myagent.test(episodes)"""

@@ -5,7 +5,7 @@ Environment used - [FrozenLake-v0](https://gym.openai.com/envs/FrozenLake-v0/)
 ## q_learning.py
 
 ```
-from q-learning import q_learning.agent
+from aihaven.q-learning.q\_learning import agent
 my_agent = agent(STEP-SIZE, GAMMA, EPSILON, env)
 my_agent.train
 ```
