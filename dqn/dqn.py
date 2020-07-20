@@ -58,7 +58,7 @@ class agent:
     def store_transitions(self, state, action, reward, next_state, done):
         if len(self.memory) < self.buffer_size:
             self.memory.append(
-                self.Transition(state, action, reward, next_state, done)
+                Transition(state, action, reward, next_state, done)
             )
         else:
             self.memory.popleft()
@@ -85,7 +85,7 @@ class agent:
             state = self.env.reset()
             for j in range(5000):
                 self.env.render()
-                action = self.select_action(state)
+                action = self.select_action(torch.from_numpy(state))
                 next_state, reward, done, _ = self.env.step(action)
                 self.store_transitions(
                     state, action, reward, next_state, done
@@ -127,7 +127,7 @@ class agent:
                     )
 
 
-"""if __name__ == "__main__":
+if __name__ == "__main__":
     env = gym.make("CartPole-v1")
     GAMMA = 0.9
     EPSILON = 0.2
@@ -140,4 +140,4 @@ class agent:
 
     myagent = agent(env, GAMMA, EPSILON, hidden_layers_size, buffer_size)
     myagent.play(EPISODES, lr)
-    myagent.test(episodes)"""
+    myagent.test(episodes)

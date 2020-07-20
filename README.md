@@ -37,7 +37,7 @@ Frameworks used : **PyTorch**, **Tensorflow**, **Keras**
 - [ ] Vanilla Policy Gradient (VPG)
 - [x] Q-Learning
 - [ ] State-Action-Reward-State-Action (SARSA)
-- [ ] Deep Q Network (DQN)
+- [x] Deep Q Network (DQN)
 - [ ] Deep Deterministic Policy Gradient (DDPG)
 - [ ] Monte Carlo Tree Search (MCTS)
 - [ ] Temporal Difference Learning (TD Learning)

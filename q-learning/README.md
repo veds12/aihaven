@@ -27,7 +27,7 @@ python3 train.py
 ## Current Tasks
 
 - [ ] Add tqdm progress bar for training
-- [ ] Test the learned q-values on an episode of the game
+- [ ] Add learning plots
 
 ## References
 
