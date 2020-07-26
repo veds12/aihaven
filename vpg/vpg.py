@@ -132,7 +132,9 @@ class agent:
 
                 assert value_traj.size == rtg.size
 
-                advantage = rtg - value_traj
+                advantage = torch.Tensor(len(value_traj))
+                for i in range(len(reward_traj)-1):
+                    advantage[i] = rtg[i+1] - value_traj[i]
 
                 v_loss += nn.MSELoss()(rtg, value_traj)
                 v_loss = v_loss / len(reward_traj)
