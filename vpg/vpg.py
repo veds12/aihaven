@@ -1,6 +1,6 @@
 import gym
 import torch
-import torch.distributions.categorical as Categorical
+from torch.distributions.categorical import Categorical
 import torch.nn as nn
 import torch.optim as optim
 
@@ -35,7 +35,7 @@ class agent:
                     nn.Linear(
                         policy_layers_sizes[1], self.env.action_space.n
                     ),
-                    nn.Softmax(dim=0),
+                    nn.Softmax(dim=0)
                 )
             )
             .to(device)
@@ -75,6 +75,7 @@ class agent:
             )
 
             for e in range(episodes):
+                
                 observation = self.env.reset()
                 observation = torch.tensor(
                     observation, device=device, dtype=dtype
@@ -156,8 +157,13 @@ class agent:
 
             p_loss.backward()
             p_optimizer.step()
+            p_optimizer.zero_grad()
+                
             v_loss.backward()
             v_optimizer.step()
+            v_optimizer.zero_grad()
+
+            print("Completed epoch {}/{} of training".format(E, epochs)))
 
         self.env.close()
 
@@ -174,7 +180,7 @@ class agent:
                 action = policy_distribution.sample()
                 observation, _, done, _ = self.env.step(action.item())
                 if done:
-                    print("Episode {}/{}finished".format(e, EPISODES))
+                    print("End of episode {}/{}".format(e, EPISODES))
         self.env.close()
 
 
