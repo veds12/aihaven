@@ -34,10 +34,11 @@ Frameworks used : **PyTorch**, **Tensorflow**, **Keras**
 
 ## Reinforcement Learning Algorithms
 
-- [ ] Vanilla Policy Gradient (VPG)
+- [x] Vanilla Policy Gradient (VPG)
 - [x] Q-Learning
 - [ ] State-Action-Reward-State-Action (SARSA)
 - [x] Deep Q Network (DQN)
+- [x] Advantage Actor Critic (A2C)
 - [ ] Deep Deterministic Policy Gradient (DDPG)
 - [ ] Monte Carlo Tree Search (MCTS)
 - [ ] Temporal Difference Learning (TD Learning)

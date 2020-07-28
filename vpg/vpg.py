@@ -167,12 +167,12 @@ class agent:
 
         self.env.close()
 
-    def test(self, EPISODES, MAX_STEPS):
+    def test(self, EPISODES):
 
         for e in range(EPISODES):
             observation = self.env.reset()
-
-            for _ in range(MAX_STEPS):
+            done = 0
+            while not done:
                 self.env.render()
                 policy_distribution = Categorical(
                     self.policy_network(observation)
@@ -184,7 +184,7 @@ class agent:
         self.env.close()
 
 
-if __name__ == "__main__":
+"""if __name__ == "__main__":
     env = gym.make("CartPole-v1")
     POLICY_LAYER_SIZES = [32, 32]
     VALUE_LAYER_SIZES = [32, 32]
@@ -201,4 +201,4 @@ if __name__ == "__main__":
     TEST_EPISODES = 4
     TEST_MAX_STEPS = 1000
 
-    myagent.test(TEST_EPISODES, TEST_MAX_STEPS)
+    myagent.test(TEST_EPISODES, TEST_MAX_STEPS)"""
