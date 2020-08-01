@@ -42,6 +42,7 @@ Frameworks used : **PyTorch**, **Tensorflow**, **Keras**
 - [ ] Deep Deterministic Policy Gradient (DDPG)
 - [ ] Monte Carlo Tree Search (MCTS)
 - [ ] Temporal Difference Learning (TD Learning)
+- [ ] PPO3
 
 ## Multi Agent Reinforcement Learning Algorithms
 
