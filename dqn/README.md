@@ -6,7 +6,7 @@
 
 ## Usage 
 
-```
+```python
 from aihaven.dqn.dqn import agent
 import gym
 

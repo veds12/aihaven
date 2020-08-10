@@ -108,6 +108,7 @@ class agent:
                 state = next_state
                 if done:
                     break
+        self.env.close()
 
     def test(self, episodes):
         self.env.render()

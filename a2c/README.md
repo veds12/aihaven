@@ -5,7 +5,7 @@
 
 ## Usage
 
-```
+```python
 from aihaven.a2c import agent
 my_agent = agent(env, actor_layer_sizes, critic_layer_sizes)
 my_agent.train(actor_lr, critic_lr, episodes, max_steps_per_episode, GAMMA)

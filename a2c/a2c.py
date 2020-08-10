@@ -1,9 +1,8 @@
 import matplotlib.pyplot as plt
 import torch
-from torch.distributions.categorical import Categorical
 import torch.nn as nn
 import torch.optim as optim
-
+from torch.distributions.categorical import Categorical
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 dtype = torch.double
@@ -97,6 +96,8 @@ class agent:
                 actor_optimizer.step()
                 actor_optimizer.zero_grad()
 
+                state = next_state
+
                 if done:
                     print(
                         "Completed episode {}/{} of training".format(
@@ -108,20 +109,22 @@ class agent:
 
         self.env.close()
 
-    def test(self, EPISODES):
+    def test(self, EPISODES, MAX_TIME_STEPS):
         for e in range(EPISODES):
+            print("Episode: {}/{}".format(e+1, EPISODES))
             state = self.env.reset()
-            done = 0
 
-            while not done:
+            for t in range(MAX_TIME_STEPS):
+                print("\tTime step: {}/{}".format(t+1, MAX_TIME_STEPS))
                 self.env.render()
 
-                probs = self.actor(state)
+                probs = self.actor(torch.from_numpy(state))
                 action_distribution = Categorical(probs)
                 action = action_distribution.sample()
 
-                _, _, done, _ = self.env.step(action)
+                next_state, _, done, _ = self.env.step(action)
 
+                state = next_state
                 if done:
                     print("Episode {}/{} done".format(e, EPISODES))
 
