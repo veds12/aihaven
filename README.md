@@ -39,7 +39,7 @@ Frameworks used : **PyTorch**, **Tensorflow**, **Keras**
 - [ ] State-Action-Reward-State-Action (SARSA)
 - [x] Deep Q Network (DQN)
 - [x] Advantage Actor Critic (A2C)
-- [ ] Deep Deterministic Policy Gradient (DDPG)
+- [x] Deep Deterministic Policy Gradient (DDPG)
 - [ ] Monte Carlo Tree Search (MCTS)
 - [ ] Temporal Difference Learning (TD Learning)
 - [ ] PPO3
