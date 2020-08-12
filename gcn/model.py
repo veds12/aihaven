@@ -1,3 +1,6 @@
+# Author : Vedant Shah
+# E-mail : vedantshah2012@gmail.com
+
 import torch.nn as nn
 import torch.nn.functional as F
 

@@ -1,10 +1,12 @@
+# Author : Vedant Shah
+# E-mail : vedantshah2012@gmail.com
+
 import copy
 import random
 from collections import deque, namedtuple
 
 import matplotlib.pyplot as plt
 
-import gym
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -302,10 +304,15 @@ class agent:
 
 
 if __name__ == "__main__":
-    env = gym.make("MountainCarContinuous-v0")
-    env._max_episode_steps = 7000
+    #import gym
+    import pybullet_envs.bullet as bullet
+
+    env = bullet.kukaGymEnv.KukaGymEnv(renders=False, isDiscrete=False)
+    #env = gym.make("MountainCarContinuous-v0")
+    #env._max_episode_steps = 7000
     myagent = agent(env)
-    myagent.train(max_episodes=75)
+    myagent.train()
     myagent.plot("train")
+
     # myagent.test()
     # myagent.plot("test")

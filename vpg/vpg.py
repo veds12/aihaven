@@ -1,3 +1,6 @@
+# Author : Vedant Shah
+# E-mail : vedantshah2012@gmail.com
+
 import gym
 import torch
 from torch.distributions.categorical import Categorical

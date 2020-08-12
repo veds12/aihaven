@@ -1,3 +1,6 @@
+# Author : Vedant Shah
+# E-mail : vedantshah2012@gmail.com
+
 import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn

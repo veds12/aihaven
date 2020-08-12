@@ -1,4 +1,7 @@
-import math
+# Author : Vedant Shah
+# E-mail : vedantshah2012@gmail.com
+
+ math
 import random
 from collections import deque, namedtuple
 
