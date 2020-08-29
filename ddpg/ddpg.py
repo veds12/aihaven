@@ -1,6 +1,3 @@
-# Author : Vedant Shah
-# E-mail : vedantshah2012@gmail.com
-
 import copy
 import random
 from collections import deque, namedtuple
@@ -10,6 +7,7 @@ import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import pybullet as p
 
 """
 Hyperparameters:
@@ -29,7 +27,7 @@ mean
 std
 """
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu")
 dtype = torch.double
 
 Transition = namedtuple(
@@ -41,9 +39,9 @@ class agent:
     def __init__(
         self,
         env,
-        actor_layer_sizes=[32, 32],
-        critic_layer_sizes=[64, 64],
-        max_buffer_size=int(1e6),
+        actor_layer_sizes=[256, 128],
+        critic_layer_sizes=[256, 128],
+        max_buffer_size=50000,
     ):
         self.env = env
         (
@@ -88,11 +86,11 @@ class agent:
             .to(dtype)
         )
 
-        target_actor = copy.deepcopy(actor)  # Create a target actor network
+        target_actor = copy.deepcopy(actor).to(device).to(dtype)  # Create a target actor network
 
         target_critic = copy.deepcopy(
             critic
-        )  # Create a target critic network
+        ).to(device).to(dtype)  # Create a target critic network
 
         return actor, critic, target_actor, target_critic
 
@@ -100,14 +98,14 @@ class agent:
         self, state, mean=0, std=0.99
     ):  # Selects an action in exploratory manner
         with torch.no_grad():
-            noisy_action = self.actor(state) + torch.empty(
-                self.env.action_space.shape
-            ).normal_(mean=mean, std=std)
+            empty_ten = torch.empty(self.env.action_space.shape).to(device).to(dtype)
+            noisy_action = self.actor(state) + empty_ten.normal_(mean=mean, std=std)
+          
             action = torch.clamp(
                 noisy_action,
                 self.env.action_space.low[0],
                 self.env.action_space.high[0],
-            )
+            ).to(device).to(dtype)
 
         return action
 
@@ -144,15 +142,15 @@ class agent:
     def train(
         self,
         GAMMA=0.99,
-        actor_lr=0.001,
-        critic_lr=0.001,
+        actor_lr=0.000005,
+        critic_lr=0.00005,
         polyak_constant=0.001,
-        max_time_steps=6000,
-        max_episodes=300,
+        max_time_steps=4000,
+        max_episodes=200,
         update_after=1,
-        batch_size=64,
+        batch_size=32,
         mean=0,
-        std=0.99,
+        std=0.7,
     ):
         self.train_rewards_list = []
         actor_optimizer = optim.Adam(self.actor.parameters(), lr=actor_lr)
@@ -165,12 +163,13 @@ class agent:
                 0
             )
             episode_reward = 0
-
-            for t in range(max_time_steps):
+            done = torch.tensor([0], device=device, dtype=dtype).unsqueeze(0)
+            t = 0
+            while not done[0].item():
                 self.env.render()
                 action = self.select_action(state, mean=mean, std=std)
                 next_state, reward, done, _ = self.env.step(
-                    action[0]
+                    action[0].cpu()
                 )  # Sample a transition
                 episode_reward += reward
 
@@ -188,6 +187,8 @@ class agent:
                     state, action, reward, next_state, done
                 )  # Store the transition in the replay buffer
 
+                # if (((t + 1) % update_after) == 0):
+
                 state = next_state
 
                 sample_batch = self.sample_batch(batch_size)
@@ -204,6 +205,8 @@ class agent:
                             dim=1,
                         )
                     )
+
+                    target = torch.tensor(target, device=device, dtype=dtype)
 
                 # Train the critic on the sampled batch
                 critic_loss = nn.MSELoss()(
@@ -236,7 +239,6 @@ class agent:
                 actor_loss.backward()
                 actor_optimizer.step()
 
-                # if (((t + 1) % update_after) == 0):
                 for actor_param, target_actor_param in zip(
                     self.actor.parameters(), self.target_actor.parameters()
                 ):
@@ -254,10 +256,11 @@ class agent:
                     )
 
                 print(
-                    "\tTimestep {}/{} of episode {}".format(
-                        t + 1, max_time_steps, e + 1
+                    "\tTimestep {} of episode {}".format(
+                        t + 1, e + 1
                     )
                 )
+                t += 1
                 if done:
                     print(
                         "Completed episode {}/{}".format(e + 1, max_episodes)
@@ -265,42 +268,59 @@ class agent:
                     break
 
             self.train_rewards_list.append(episode_reward)
-
+        self.save()
         self.env.close()
 
-    """def test(self, TEST_EPISODES=20):
-        self.test_rewards_list = []
-        print("\nTest begin:")
-        for e in range(TEST_EPISODES):
-            episode_reward = 0
-            state = self.env.reset()
-            state = torch.tensor(state, device=device, dtype=dtype).unsqueeze(0)
-            done = 0
-            t = 0
-            while not done:
-                t += 1
-                self.env.render()
-                action = self.actor(state)
-                next_state, reward, done, _ = self.env.step(action[0])
-                episode_reward += reward
-                next_state = torch.tensor(next_state, device=device, dtype=dtype).unsqueeze(0)
-                state = next_state
-                print("Time step {} of episode {}/{}".format(t + 1, e + 1, EPISODES))
-                if done:
-                    print("Episode {} completed in {} timesteps".format(e + 1, t + 1))
-                    break
-            self.test_rewards_list.append(episode_reward)
-        self.env.close()"""
+    def save(self, path_to_dir=None):
+        if path_to_dir is None:
+            path_to_dir = "./models"
+        path1 = os.path.join(path_to_dir, "actor.pth")
+        path2 = os.path.join(path_to_dir, "critic.pth")
+        torch.save(self.actor, path1)
+        torch.save(self.critic, path2)
 
     def plot(self, plot_type):
-        if plot_type == "train":
+        if (plot_type == "train"):
             plt.plot(self.train_rewards_list)
+            plt.savefig("./plots/train_rewards_plot.png")
             plt.show()
-        elif plot_type == "test":
+
+        elif (plot_type == "test"):
             plt.plot(self.test_rewards_list)
+            plt.savefig("./plots/test_rewards_plot.png")
             plt.show()
+
         else:
-            print("\nInvalid plot type")
+            print("Invalid plot type!")
+
+    def test(self, episodes=5, path_to_models=None):
+        if path_to_models is None:
+            path_to_models = "./models"
+        path1 = os.path.join(path_to_models, "actor.pth")
+        path2 = os.path.join(path_to_models, "critic.pth")
+
+        actor = torch.load(path1)
+        self.test_rewards_list = []
+
+        for e in range(episodes):
+            state = self.env.reset()
+            state = torch.tensor(state, device=device, dtype=dtype)
+            done = 0
+            episode_reward = 0
+            while not done:
+                self.env.render()
+                action = self.select_action(state)
+                next_state, reward, done, _ = self.env.step(action[0])
+                episode_reward += reward
+
+                next_state = torch.tensor(next_state, device=device, dtype=dtype)
+
+                if done:
+                    print(f"Completed episode {e + 1}/{episodes}")
+
+            self.test_rewards_list.append(episode_reward)
+
+        self.env.close()
 
 
 if __name__ == "__main__":
@@ -311,7 +331,7 @@ if __name__ == "__main__":
     #env = gym.make("MountainCarContinuous-v0")
     #env._max_episode_steps = 7000
     myagent = agent(env)
-    myagent.train()
+    myagent.train(max_episodes=25)
     myagent.plot("train")
 
     # myagent.test()
