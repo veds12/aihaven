@@ -1,6 +1,7 @@
 """
 Author : Vedant Shah
 Email : vedantshah2012@gmail.com
+
 """
 
 import copy
@@ -25,9 +26,9 @@ class agent:
     def __init__(
         self,
         env,
-        actor_layer_sizes=[64, 64],
-        critic_layer_sizes=[64, 64],
-        max_buffer_size=int(1e6),
+        actor_layer_sizes=[256, 128],
+        critic_layer_sizes=[256, 128],
+        max_buffer_size=50000,
     ):
         self.env = env
         self.max_buffer_size = max_buffer_size
@@ -41,11 +42,10 @@ class agent:
 
     def make_models(self, actor_layer_sizes, critic_layer_sizes):
         Q = (
-            (
                 nn.Sequential(
                     nn.Linear(
                         self.env.observation_space.shape[0]
-                        + 6
+                        + 12
                         + self.env.action_space.shape[0],
                         critic_layer_sizes[0],
                     ),
@@ -53,17 +53,13 @@ class agent:
                     nn.Linear(critic_layer_sizes[0], critic_layer_sizes[1]),
                     nn.ReLU(),
                     nn.Linear(critic_layer_sizes[1], 1),
-                )
+                ).to(device).to(dtype)
             )
-            .to(device)
-            .to(dtype)
-        )
 
         policy = (
-            (
                 nn.Sequential(
                     nn.Linear(
-                        self.env.observation_space.shape[0] + 6,
+                        self.env.observation_space.shape[0] + 12,
                         actor_layer_sizes[0],
                     ),
                     nn.ReLU(),
@@ -73,11 +69,9 @@ class agent:
                         actor_layer_sizes[1], self.env.action_space.shape[0]
                     ),
                     nn.Tanh(),
-                )
+                ).to(device).to(dtype)
             )
-            .to(device)
-            .to(dtype)
-        )
+        
 
         Q_target = copy.deepcopy(Q)
         policy_target = copy.deepcopy(policy)
@@ -101,19 +95,16 @@ class agent:
 
     def select_action(self, state, mean, std):
         with torch.no_grad():
-            empty = (
-                torch.empty(self.env.action_space.shape).to(device).to(dtype)
-            )
-            action_noisy = self.policy(state) + empty.normal_(
-                mean=mean, std=std
-            )
-            action = torch.clamp(
-                action_noisy,
-                self.env.action_space.low[0],
-                self.env.action_space.high[0],
-            )
+          empty_ten = torch.empty(self.env.action_space.shape).to(device).to(dtype)
+          noisy_action = self.policy(state) + empty_ten.normal_(mean=mean, std=std)
+          
+          action = torch.clamp(
+              noisy_action,
+              self.env.action_space.low[0],
+              self.env.action_space.high[0],
+          ).to(device).to(dtype)
 
-            return action
+        return action
 
     def store_transition(self, state, action, reward, next_state, done):
         if len(self.replay_buffer) < self.max_buffer_size:
@@ -123,7 +114,7 @@ class agent:
         else:
             self.replay_buffer.popleft()
             self.replay_buffer.append(
-                Transition(state, action, reward, nex_state, done)
+                Transition(state, action, reward, next_state, done)
             )
 
     def update(
@@ -187,15 +178,15 @@ class agent:
 
     def train(
         self,
-        actor_lr=0.0001,
-        critic_lr=0.001,
+        actor_lr=0.000005,
+        critic_lr=0.00005,
         gamma=0.99,
-        batch_size=64,
+        batch_size=32,
         mean=0,
-        std=0.7,
+        std=0.99,
         update_after=1,
         max_episodes=50,
-        max_time_steps=1500,
+        max_time_steps=1000,
         polyak_constant=0.001,
     ):
         actor_optimizer = optim.Adam(self.policy.parameters(), lr=actor_lr)
@@ -203,9 +194,9 @@ class agent:
         actor_optimizer.zero_grad()
         critic_optimizer.zero_grad()
         self.training_rewards_list = []
+        print("\nStarting Training:")
 
         for e in range(max_episodes):
-            print(f"Starting Episode : {e + 1}/{max_episodes}")
             state = self.env.reset()
             state = torch.tensor(state, device=device, dtype=dtype).unsqueeze(
                 0
@@ -214,20 +205,23 @@ class agent:
                 self.env.blockUid
             )
             finalposangles = p.calculateInverseKinematics(
-                self.env.blockUid, self.env._kuka.kukaGripperIndex, blockPos
+                self.env._kuka.kukaUid, 6, blockPos
             )
             finalposangles = torch.tensor(
                 finalposangles, device=device, dtype=dtype
             ).unsqueeze(0)
+            state = torch.cat((state, finalposangles), dim=1)
             episode_reward = 0
             experience_replay = []
-            final_state = None
-            print("\nStarting Training:")
+            done = torch.tensor([0], dtype=torch.bool, device=device)
+            t = -1
+            print(f"\nStarting Episode : {e + 1}/{max_episodes}")
 
-            for t in range(max_time_steps):
+            while not done[0].item():
+                t += 1
                 self.env.render()
                 action = self.select_action(state, mean, std)
-                next_state, reward, done, _ = self.env.step(action)
+                next_state, reward, done, _ = self.env.step(action[0])
                 episode_reward += reward
 
                 next_state = torch.tensor(
@@ -237,13 +231,11 @@ class agent:
                     [reward], device=device, dtype=dtype
                 ).unsqueeze(0)
                 done = torch.tensor(
-                    [done], device=device, dtype=bool
+                    [done], device=device, dtype=torch.bool
                 ).unsqueeze(0)
 
-                experience_replay.append(
-                    Transition(state, action, reward, next_state, done)
-                )
-                state = torch.cat((state, finalposangles), dim=1)
+                actual_state = state[0][0:9].unsqueeze(0)
+                experience_replay.append([actual_state, action, reward, next_state, done])
                 next_state = torch.cat((next_state, finalposangles), dim=1)
                 self.store_transition(state, action, reward, next_state, done)
 
@@ -259,36 +251,29 @@ class agent:
                     )
 
                 print(
-                    f"\tTime Step : {t + 1}/{max_time_steps} of episode : {e + 1}/{max_episodes}"
+                    f"\tTime Step : {t + 1} of episode : {e + 1}/{max_episodes}"
                 )
 
                 if done[0].item():
-                    final_state = next_state
+                    gripperState  = p.getLinkState(self.env._kuka.kukaUid, self.env._kuka.kukaGripperIndex)
+                    gripperPos = gripperState[0]
+                    final_state = p.calculateInverseKinematics(self.env._kuka.kukaUid, 6, gripperPos)
+                    final_state = torch.tensor(final_state, device=device, dtype=dtype).unsqueeze(0)
+                    for i, transition in enumerate(experience_replay):
+                      if i == (len(experience_replay) - 1):
+                        transition[2] = torch.tensor([1], device=device, dtype=dtype)
+                      transition[0] = torch.cat((transition[0], final_state), dim=1)
+                      transition[3] = torch.cat((transition[3], final_state), dim=1)
+                      self.store_transition(transition[0], transition[1], transition[2], transition[3], transition[4])
+                    
                     break
 
             self.training_rewards_list.append(episode_reward)
 
-            for i, transition in enumerate(experience_replay):
-                if i == (len(experience_replay) - 1):
-                    transition.reward[0][0] = 1
-                transition.state = torch.cat(
-                    (transition.state, final_state), dim=1
-                )
-                transition.next_state = torch.cat(
-                    (transition.next_state, final_state), dim=1
-                )
-                self.store_transition(
-                    transition.state,
-                    transition.action,
-                    transition.reward,
-                    transition.next_state,
-                    transition.done,
-                )
-
         self.env.close()
         self.plot()
 
-    def plot():
+    def plot(self):
         plt.plot(self.training_rewards_list)
         plt.savefig("./plots/kuka_her_training.png")
         plt.show()
@@ -300,4 +285,4 @@ if __name__ == "__main__":
     env = bullet.kukaGymEnv.KukaGymEnv(renders=False, isDiscrete=False)
 
     myagent = agent(env)
-    myagent.train()
+    myagent.train(max_episodes=50, max_time_steps=700)
