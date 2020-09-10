@@ -274,8 +274,8 @@ class agent:
     def save(self, path_to_dir=None):
         if path_to_dir is None:
             path_to_dir = "./models"
-        path1 = os.path.join(path_to_dir, "actor.pth")
-        path2 = os.path.join(path_to_dir, "critic.pth")
+        path1 = os.path.join(path_to_dir, "ddpg_actor.pth")
+        path2 = os.path.join(path_to_dir, "ddpg_critic.pth")
         torch.save(self.actor, path1)
         torch.save(self.critic, path2)
 
@@ -296,28 +296,30 @@ class agent:
     def test(self, episodes=5, path_to_models=None):
         if path_to_models is None:
             path_to_models = "./models"
-        path1 = os.path.join(path_to_models, "actor.pth")
-        path2 = os.path.join(path_to_models, "critic.pth")
+        path1 = os.path.join(path_to_models, "ddpg_actor.pth")
+        path2 = os.path.join(path_to_models, "ddpg_critic.pth")
 
         actor = torch.load(path1)
         self.test_rewards_list = []
 
         for e in range(episodes):
             state = self.env.reset()
-            state = torch.tensor(state, device=device, dtype=dtype)
+            state = torch.tensor(state, device=device, dtype=dtype).unsqueeze(0)
             done = 0
             episode_reward = 0
             while not done:
                 self.env.render()
-                action = self.select_action(state)
+                action = actor(state)
                 next_state, reward, done, _ = self.env.step(action[0])
                 episode_reward += reward
 
-                next_state = torch.tensor(next_state, device=device, dtype=dtype)
+                next_state = torch.tensor(next_state, device=device, dtype=dtype).unsqueeze(0)
+                state = next_state
 
                 if done:
                     print(f"Completed episode {e + 1}/{episodes}")
-
+                    break
+                
             self.test_rewards_list.append(episode_reward)
 
         self.env.close()

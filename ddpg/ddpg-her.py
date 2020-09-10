@@ -2,6 +2,7 @@
 Author : Vedant Shah
 Email : vedantshah2012@gmail.com
 
+Note : This can be used only for the KukaGymEnv environment
 """
 
 import copy
@@ -13,6 +14,8 @@ import torch.nn as nn
 import torch.optim as optim
 
 import pybullet as p
+import random
+import os
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 dtype = torch.double
@@ -32,6 +35,8 @@ class agent:
     ):
         self.env = env
         self.max_buffer_size = max_buffer_size
+        self.actor_layer_sizes = actor_layer_sizes
+        self.critic_layer_sizes = critic_layer_sizes
         (
             self.Q,
             self.policy,
@@ -95,6 +100,8 @@ class agent:
 
     def select_action(self, state, mean, std):
         with torch.no_grad():
+          if (len(self.replay_buffer) <= 200):
+            return torch.tensor(self.env.action_space.sample(), device=device, dtype=dtype).unsqueeze(0)
           empty_ten = torch.empty(self.env.action_space.shape).to(device).to(dtype)
           noisy_action = self.policy(state) + empty_ten.normal_(mean=mean, std=std)
           
@@ -145,7 +152,7 @@ class agent:
             ),
         )
         critic_optimizer.zero_grad()
-        critic_loss.backward()
+        Q_loss.backward()
         critic_optimizer.step()
 
         policy_loss = -1 * torch.mean(
@@ -156,9 +163,9 @@ class agent:
                 )
             )
         )
-        policy_optimizer.zero_grad()
+        actor_optimizer.zero_grad()
         policy_loss.backward()
-        policy_optimizer.step()
+        actor_optimizer.step()
 
         for policy_param, policy_target_param in zip(
             self.policy.parameters(), self.policy_target.parameters()
@@ -175,6 +182,8 @@ class agent:
                 polyak_constant * Q_param.data
                 + (1 - polyak_constant) * Q_target_param.data
             )
+          
+        return Q_loss, policy_loss
 
     def train(
         self,
@@ -188,12 +197,14 @@ class agent:
         max_episodes=50,
         max_time_steps=1000,
         polyak_constant=0.001,
+        RENDER=False,
+        path_to_dir=None
     ):
         actor_optimizer = optim.Adam(self.policy.parameters(), lr=actor_lr)
         critic_optimizer = optim.Adam(self.Q.parameters(), lr=critic_lr)
         actor_optimizer.zero_grad()
         critic_optimizer.zero_grad()
-        self.training_rewards_list = []
+        training_rewards_list = []
         print("\nStarting Training:")
 
         for e in range(max_episodes):
@@ -217,9 +228,12 @@ class agent:
             t = -1
             print(f"\nStarting Episode : {e + 1}/{max_episodes}")
 
-            while not done[0].item():
+            for i in range(max_time_steps):
                 t += 1
-                self.env.render()
+
+                if RENDER:
+                    self.env.render()
+
                 action = self.select_action(state, mean, std)
                 next_state, reward, done, _ = self.env.step(action[0])
                 episode_reward += reward
@@ -241,41 +255,105 @@ class agent:
 
                 state = next_state
 
-                if (t + 1) % update_after == 1:
-                    self.update(
+                print(
+                    f"\tTime Step : {t + 1} of episode : {e + 1}/{max_episodes}"
+                )
+
+                if ((t + 1) % update_after == 0 and len(self.replay_buffer) > 200):
+                    q_loss, policy_loss = self.update(
                         polyak_constant=polyak_constant,
                         actor_optimizer=actor_optimizer,
                         critic_optimizer=critic_optimizer,
                         gamma=gamma,
                         batch_size=batch_size,
                     )
+                    print(f"\t\tQ_loss = {q_loss}, policy_loss = {policy_loss}")
 
-                print(
-                    f"\tTime Step : {t + 1} of episode : {e + 1}/{max_episodes}"
-                )
-
-                if done[0].item():
+                if done[0].item() or (t + 1) == max_time_steps:
                     gripperState  = p.getLinkState(self.env._kuka.kukaUid, self.env._kuka.kukaGripperIndex)
                     gripperPos = gripperState[0]
                     final_state = p.calculateInverseKinematics(self.env._kuka.kukaUid, 6, gripperPos)
                     final_state = torch.tensor(final_state, device=device, dtype=dtype).unsqueeze(0)
                     for i, transition in enumerate(experience_replay):
                       if i == (len(experience_replay) - 1):
-                        transition[2] = torch.tensor([1], device=device, dtype=dtype)
+                        transition[2] = torch.tensor([1], device=device, dtype=dtype).unsqueeze(0)
                       transition[0] = torch.cat((transition[0], final_state), dim=1)
                       transition[3] = torch.cat((transition[3], final_state), dim=1)
                       self.store_transition(transition[0], transition[1], transition[2], transition[3], transition[4])
                     
+                    training_rewards_list.append(episode_reward)
+                    print(f"Episode {e + 1} completed; Episode Reward = {episode_reward}")
+                    
                     break
 
-            self.training_rewards_list.append(episode_reward)
+        self.env.close()
+        if path_to_dir is not None:
+            self.save(path_to_dir)
+        self.plot(rewards_list=training_rewards_list, file_name = "kuka_her_train.png")
+
+    def save(self, path_to_dir):
+        path1 = os.path.join(path_to_dir, "ddpg_her_policy.pth")
+        path2 = os.path.join(path_to_dir, "ddpg_her_Q.pth")
+        torch.save(self.policy.state_dict(), path1)
+        torch.save(self.Q.state_dict(), path2)
+    
+    def evaluate(self, path_to_models, EPISODES=10):
+        path1 = os.path.join(path_to_models, "ddpg_her_policy.pt")
+        path2 = os.path.join(path_to_models, "ddpg_her_Q.pt")
+        _, policy, _, _ = self.make_models(self.actor_layer_sizes, self.critic_layer_sizes)
+        policy.load_state_dict(torch.load(path1))
+        test_reward_list = []
+
+        for e in range(EPISODES):
+            print(f"STARTING EPISODE {e + 1} / {EPISODES}\n")
+            done = False
+            episode_reward = 0
+            state = self.env.reset()
+            state = torch.tensor(state, device=device, dtype=dtype)
+            blockPos, blockOrn = p.getBasePositionAndOrientation(
+                self.env.blockUid
+            )
+            finalposangles = p.calculateInverseKinematics(
+                self.env._kuka.kukaUid, 6, blockPos
+            )
+            finalposangles = torch.tensor(
+                finalposangles, device=device, dtype=dtype
+            )
+            state = torch.cat((state, finalposangles))
+            t = 0
+
+            while not done:
+                t += 1
+                print(f"\tTime step {t + 1}, Episode {e + 1} / {EPISODES}")
+                self.env.render()
+                action = policy(state)
+                next_state, reward, done, _ = self.env.step(action.detach())
+                episode_reward += reward
+
+                next_state = torch.tensor(next_state, device=device, dtype=dtype)
+
+                gripperState  = p.getLinkState(self.env._kuka.kukaUid, self.env._kuka.kukaGripperIndex)
+                gripperPos = gripperState[0]
+                state_extension = p.calculateInverseKinematics(self.env._kuka.kukaUid, 6, gripperPos)
+                state_extension = torch.tensor(state_extension, device=device, dtype=dtype)
+
+                next_state = torch.cat((next_state, state_extension))
+
+                state = next_state
+
+                if done:
+                    print("\n")
+                    break
+
+            test_reward_list.append(episode_reward)
 
         self.env.close()
-        self.plot()
+        self.plot(rewards_list=test_reward_list, filename="kuka_her_test.png")
 
-    def plot(self):
-        plt.plot(self.training_rewards_list)
-        plt.savefig("./plots/kuka_her_training.png")
+
+    def plot(self, rewards_list, file_name):
+        plt.plot(rewards_list)
+        plt.savefig(file_name)
         plt.show()
 
 
@@ -285,4 +363,6 @@ if __name__ == "__main__":
     env = bullet.kukaGymEnv.KukaGymEnv(renders=False, isDiscrete=False)
 
     myagent = agent(env)
-    myagent.train(max_episodes=50, max_time_steps=700)
+    myagent.train(max_episodes=20, max_time_steps=400, update_after=2, RENDER=False, path_to_dir="models")
+    myagent.evaluate(EPISODES=5, path_to_models="models")
+
