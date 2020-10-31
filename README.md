@@ -1,56 +1,22 @@
 # aiheaven
 
-Implementations of various Machine Learning and Reinforcement Learning Algorithms and Neural Network Architectures
+Implementations of Reinforcement Learning Algorithms and Deep Learning models
 
-Frameworks used : **PyTorch**, **Tensorflow**, **Keras**
-
-## Machine Learning Algorithms
-
-- [ ] Linear Regression
-- [ ] Logistics Regression
-- [ ] Decision Tree
-- [ ] Support Vector Machines
-- [ ] Naive Bayes
-- [ ] kNN
-- [ ] Random Forest
-- [ ] Dimensionality Reduction Algorithms
-- [ ] GBM
-- [ ] XGBoost
-- [ ] LightGBM
-- [ ] CatBoost
+Frameworks used : **PyTorch**
 
 ## Neural Network Architectures
 
-- [ ] Convolutional Neural Network (CNN)
-- [ ] Residual Networks (ResNet)
-- [ ] Recurrent Neural Network (RNN)
-- [ ] Long Short-Term Memory (LSTM)
-- [ ] Generative Adversarial Network (GAN)
-- [ ] K-Means Clustering
-- [ ] Restricted Bolzmann Machine (RBM)
-- [ ] Deep Belief Network (DBN)
-- [x] Graph Convolutional Networks (GCN)
+* Graph Convolutional Networks (GCN)
 
 ## Reinforcement Learning Algorithms
 
-- [x] Vanilla Policy Gradient (VPG)
-- [x] Q-Learning
-- [ ] State-Action-Reward-State-Action (SARSA)
-- [x] Deep Q Network (DQN)
-- [x] Advantage Actor Critic (A2C)
-- [x] Deep Deterministic Policy Gradient (DDPG)
-- [ ] Monte Carlo Tree Search (MCTS)
-- [ ] PPO3
+* Vanilla Policy Gradient (VPG)
+* Q-Learning
+* Deep Q Network (DQN)
+* Advantage Actor Critic (A2C)
+* Deep Deterministic Policy Gradient (DDPG)
+* Monte Carlo Tree Search (MCTS)
+* PPO3
 
-## Multi Agent Reinforcement Learning Algorithms
-
-- [ ] Multi Agent Deep Deterministic Policy Gradient (MADDPG)
-- [ ] Multi Agent Advantage Actor Critic (MAA2C)
-
-To add :
-
-- [x] Include more RL Algorithms
-- [x] Include MARL Algorithms
-- [ ] Include genetic Algorithms
 
 
