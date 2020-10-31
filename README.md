@@ -15,8 +15,7 @@ Frameworks used : **PyTorch**
 * Deep Q Network (DQN)
 * Advantage Actor Critic (A2C)
 * Deep Deterministic Policy Gradient (DDPG)
-* Monte Carlo Tree Search (MCTS)
-* PPO3
+
 
 
 
