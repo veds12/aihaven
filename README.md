@@ -1,4 +1,4 @@
-# aiheaven
+# aihaven
 
 Implementations of Reinforcement Learning Algorithms and Deep Learning models
 
